@@ -5,7 +5,7 @@
   html {
     @apply min-h-[100dvh];
     /* @apply relative; */
-    @apply bg-black;
+    @apply bg-[#111];
   }
 
   #root {

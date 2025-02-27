@@ -13,7 +13,7 @@ Example of a Pixi WebGL canvas invoked and destroyed within the React lifecycle
 - Hot module reloading
 - Typesafe
 - Retina display
-- Demo includes filters, animation (with GSAP), particles
+- Demo includes filters, animation (with GSAP), particles, loader
 
 ### Attributes
 

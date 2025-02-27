@@ -17,11 +17,13 @@ import { bringToFront } from '@/utils/pixi';
 import emitterConfig from '@/components/anim-comp/assets/particle-emitter.json';
 
 import { createEmitter, Emitter } from '@/vendors/particle-emitter.js';
+// import { delay } from '@/utils/async';
 
 // import { KawaseBlurFilter } from 'pixi-filters';
 
 type InitProps = {
   parent: HTMLElement;
+  onLoaded?: () => void;
 };
 
 export type Anim = {
@@ -67,7 +69,7 @@ export function createAnim({
   // Create reference to shared ticker
   const ticker = Ticker.shared;
 
-  async function init({ parent }: InitProps) {
+  async function init({ parent, onLoaded }: InitProps) {
     await app.init({
       background: 0x000000,
       // resizeTo: window,
@@ -85,6 +87,8 @@ export function createAnim({
     // Load all assets
 
     await Assets.load(picPath);
+
+    //await delay(3000);
 
     // Particles
     if (enableParticles) {
@@ -106,13 +110,17 @@ export function createAnim({
       }, -1),
     );
     resizeObserver.observe(parent);
+
+    if (onLoaded) {
+      onLoaded();
+    }
   }
 
   // - |dims| will be set before this is called
   // - |onStageResize| will be called immediately after
   function start() {
     sprites.bg = Sprite.from(picPath);
-    // sprites.bg.alpha = 0.0;
+    //sprites.bg.alpha = 0.0;
     sprites.bg.anchor.set(0.5);
     app.stage.addChild(sprites.bg);
 
