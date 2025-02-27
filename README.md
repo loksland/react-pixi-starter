@@ -2,6 +2,10 @@
 
 Example of a Pixi WebGL canvas invoked and destroyed within the React lifecycle
 
+[View demo](https://loksland.github.io/react-pixi-starter/)
+
+![demo render](demorender.png)
+
 ### Features
 
 - Supports React strict mode
