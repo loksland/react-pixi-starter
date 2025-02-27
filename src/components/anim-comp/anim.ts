@@ -37,6 +37,10 @@ export type AnimProps = {
 const boxSize = 90.0;
 const artboardDims = { width: 600.0, height: 800.0 };
 
+Assets.init({
+  basePath: import.meta.env.BASE_URL,
+});
+
 export function createAnim({
   picPath,
   enableParticles = false,
