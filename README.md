@@ -5,9 +5,11 @@ Example of a Pixi WebGL canvas invoked and destroyed within the React lifecycle
 ### Features
 
 - Supports React strict mode
-- Supports multiple concurrent Pixi canvases
-- Supports hot module reloading
-- Demo includes filters, animation
+- Multiple concurrent Pixi canvases
+- Hot module reloading
+- Typesafe
+- Retina display
+- Demo includes filters, animation (with GSAP), particles
 
 ### Attributes
 

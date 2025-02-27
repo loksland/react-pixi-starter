@@ -1,29 +1,57 @@
-import { AnimWrapper } from '@/components/anim-wrapper.tsx';
+import { AnimComp } from '@/components/anim-comp';
 
-import { useState } from 'react';
+import { useControls } from 'leva';
 
-const demoModes = ['fullscreen', 'multi', 'particles'] as const;
-type DemoMode = (typeof demoModes)[number];
-
-function stepDemoMode(currentMode: DemoMode, step: 1 | -1) {
-  const index = demoModes.indexOf(currentMode) + step;
-  return demoModes[
-    ((index % demoModes.length) + demoModes.length) % demoModes.length
-  ];
-}
+const modes = ['fullscreen', 'multi', 'particles'] as const;
+// type DemoMode = (typeof demoModes)[number];
 
 function App() {
-  const [demoMode, setDemoMode] = useState<DemoMode>(demoModes[0]);
+  const { mode } = useControls({
+    mode: {
+      options: modes,
+      value: modes[2],
+    },
+  });
 
   return (
     <div className="flex flex-1">
-      {demoMode === 'fullscreen' && (
-        <AnimWrapper className={'absolute h-full w-full '} />
+      {mode === 'fullscreen' && (
+        <AnimComp
+          picPath="/img/pic-a.jpg"
+          className={'absolute h-full w-full '}
+        />
       )}
-      {demoMode === 'multi' && <div>{demoMode}</div>}
-      {demoMode === 'particles' && <div>{demoMode}</div>}
+      {mode === 'multi' && (
+        <div className="flex flex-row p-10 gap-10 items-center justify-center flex-wrap flex-1">
+          <AnimComp
+            picPath="/img/pic-b.jpg"
+            className={'w-[320px] h-[240px] rounded-sm'}
+          />
+          <AnimComp
+            picPath="/img/pic-a.jpg"
+            className={'w-[320px] h-[240px] rounded-sm'}
+          />
+          <AnimComp
+            picPath="/img/pic-b.jpg"
+            className={'w-[320px] h-[240px] rounded-sm'}
+          />
+          <AnimComp
+            picPath="/img/pic-a.jpg"
+            className={'w-[320px] h-[240px] rounded-sm'}
+          />
+        </div>
+      )}
+      {mode === 'particles' && (
+        <div className="absolute w-full h-full p-10 self-stretch">
+          <AnimComp
+            picPath="/img/pic-b.jpg"
+            enableParticles={true}
+            className={'w-full h-full rounded-sm'}
+          />
+        </div>
+      )}
 
-      <div className="absolute flex flex-row bg-black">
+      {/* <div className="absolute flex flex-row bg-black">
         <button
           onClick={() => setDemoMode(stepDemoMode(demoMode, -1))}
           className="bg-red-400 p-1 px-3"
@@ -37,24 +65,9 @@ function App() {
         >
           &gt;
         </button>
-      </div>
+      </div> */}
     </div>
   );
 }
-
-// <div className="absolute flex flex-col">
-//         <button
-//           onClick={() => setCount(count - 1)}
-//           className="bg-red-400 p-1 px-3"
-//         >
-//           -
-//         </button>
-//         <button
-//           onClick={() => setCount(count + 1)}
-//           className="bg-red-400 p-1 px-3"
-//         >
-//           +
-//         </button>
-//       </div>
 
 export default App;

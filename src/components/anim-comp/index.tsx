@@ -1,4 +1,4 @@
-import { createAnim, Anim } from '@/components/anim';
+import { createAnim, Anim, AnimProps } from '@/components/anim-comp/anim';
 import { cn } from '@/utils/cn';
 import { ClassValue } from 'clsx';
 import { useEffect, useRef } from 'react';
@@ -7,7 +7,10 @@ type AnimWrapperProps = {
   className: ClassValue;
 };
 
-export function AnimWrapper({ className }: AnimWrapperProps) {
+export function AnimComp({
+  className,
+  ...animProps
+}: AnimWrapperProps & AnimProps) {
   const anim = useRef<Anim>(null);
   const containingDiv = useRef(null);
 
@@ -15,7 +18,7 @@ export function AnimWrapper({ className }: AnimWrapperProps) {
 
   useEffect(() => {
     if (containingDiv.current) {
-      const _anim = createAnim();
+      const _anim = createAnim(animProps);
       if (_anim) {
         anim.current = _anim; // For this comp to communicate with
         const initResult = _anim.init({ parent: containingDiv.current });

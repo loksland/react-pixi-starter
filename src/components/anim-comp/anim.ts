@@ -10,9 +10,14 @@ import {
 } from 'pixi.js'; // Version: ^8.6.6
 
 import gsap from 'gsap';
-import { coverScale } from '@/utils/scale-fit';
+import { containScale, coverScale } from '@/utils/scale-fit';
 import { CRTFilter } from 'pixi-filters';
 import { debounce } from '@/utils/debounce';
+import { bringToFront } from '@/utils/pixi';
+import emitterConfig from '@/components/anim-comp/assets/particle-emitter.json';
+
+import { createEmitter, Emitter } from '@/lib/particle-emitter.js';
+
 // import { KawaseBlurFilter } from 'pixi-filters';
 
 type InitProps = {
@@ -24,7 +29,18 @@ export type Anim = {
   destroy: (() => Promise<void>) | (() => void);
 } | null;
 
-export function createAnim(): Anim {
+export type AnimProps = {
+  picPath: string;
+  enableParticles?: boolean;
+};
+
+const boxSize = 90.0;
+const artboardDims = { width: 600.0, height: 800.0 };
+
+export function createAnim({
+  picPath,
+  enableParticles = false,
+}: AnimProps): Anim {
   if (!window) {
     return null;
   }
@@ -42,6 +58,7 @@ export function createAnim(): Anim {
   const containers: Record<string, Container> = {};
   const sprites: Record<string, Sprite> = {};
   const filters: Record<string, Filter> = {};
+  let emitter: Emitter | null = null;
 
   // Create reference to shared ticker
   const ticker = Ticker.shared;
@@ -63,7 +80,12 @@ export function createAnim(): Anim {
 
     // Load all assets
 
-    await Assets.load('/img/pic-a.jpg');
+    await Assets.load(picPath);
+
+    // Particles
+    if (enableParticles) {
+      await Assets.load('/img/dot.png');
+    }
 
     parent.appendChild(app.canvas); // Attach (after loading)
 
@@ -85,17 +107,35 @@ export function createAnim(): Anim {
   // - |dims| will be set before this is called
   // - |onStageResize| will be called immediately after
   function start() {
-    sprites.bg = Sprite.from('/img/pic-a.jpg');
+    sprites.bg = Sprite.from(picPath);
     // sprites.bg.alpha = 0.0;
     sprites.bg.anchor.set(0.5);
     app.stage.addChild(sprites.bg);
 
-    sprites.box = Sprite.from(Texture.WHITE);
-    sprites.box.width = 40.0;
-    sprites.box.height = 40.0;
-    sprites.box.tint = 0xff3300;
-    sprites.box.angle = 45.0;
-    app.stage.addChild(sprites.box);
+    if (enableParticles) {
+      containers.particles = new Container();
+      app.stage.addChild(containers.particles);
+
+      emitter = createEmitter(containers.particles, emitterConfig, [
+        '/img/dot.png',
+      ]);
+
+      // emitter.updateSpawnPos(x, y); // Changes the spawn position of the emitter.
+      // emitter.updateOwnerPos(0, 0); // Changes the position of the emitter's owner. You should call this if you are adding
+      emitter.autoUpdate = false;
+      emitter.emit = true;
+    }
+
+    containers.artboard = new Container();
+    app.stage.addChild(containers.artboard);
+
+    sprites.diamond = Sprite.from(Texture.WHITE);
+    sprites.diamond.width = boxSize;
+    sprites.diamond.height = boxSize;
+    sprites.diamond.tint = 0xff3300;
+    sprites.diamond.angle = 45.0;
+    sprites.diamond.anchor.set(0.5);
+    containers.artboard.addChild(sprites.diamond);
 
     const col = Math.floor(Math.random() * 256 * 256 * 256);
 
@@ -111,14 +151,12 @@ export function createAnim(): Anim {
     sprites.regV.tint = col;
     app.stage.addChild(sprites.regV);
 
-    containers.squareHolder = new Container();
-    app.stage.addChild(containers.squareHolder);
-
-    sprites.square = Sprite.from(Texture.WHITE);
-    sprites.square.width = 40.0;
-    sprites.square.height = 40.0;
-    sprites.square.tint = 0x1c81ff;
-    containers.squareHolder.addChild(sprites.square);
+    sprites.box = Sprite.from(Texture.WHITE);
+    sprites.box.width = boxSize;
+    sprites.box.height = boxSize;
+    sprites.box.tint = 0x1c81ff;
+    sprites.box.anchor.set(0.5);
+    containers.artboard.addChild(sprites.box);
 
     // sprites.displacement = Sprite.from('/img/pic-a.jpg');
     // sprites.displacement.texture.source.addressMode = 'repeat'; // WRAP_MODES.REPEAT; // nope
@@ -139,11 +177,11 @@ export function createAnim(): Anim {
     gsap.from(sprites.bg, { duration: 5.0, alpha: 0.0, ease: 'Sine.easeOut' });
 
     gsap.fromTo(
-      sprites.square,
+      sprites.box,
       { x: -100.0 },
       {
         x: 100.0,
-        duration: 1.0,
+        duration: 1.3,
         delay: 0.5,
         ease: 'Sine.easeInOut',
         yoyo: true,
@@ -155,51 +193,8 @@ export function createAnim(): Anim {
     onTick();
   }
 
-  let elapsedTime = 0.0;
-  function onTick() {
-    elapsedTime += ticker.elapsedMS * 0.001;
-
-    sprites.box.position.set(
-      dims.width * 0.5 -
-        sprites.box.height * 0.5 +
-        100.0 * Math.sin(elapsedTime * 2.5),
-      dims.height * 0.5 -
-        sprites.box.width * 0.5 +
-        50.0 * Math.sin(elapsedTime * 5.0),
-    );
-
-    // delta = null, firstRun = false
-    // const dt = delta?.deltaTime ?? 1.0;
-    // if (sprites?.displacement) {
-    //   const speedFactor = 0.6;
-    //   sprites.displacement.x += 8 * dt * speedFactor;
-    //   sprites.displacement.y += 3 * dt * speedFactor;
-    //   //sprites.displacement.rotation = 11; //+= 0.1 * delta.deltaTime * speedFactor;
-    // }
-
-    if (filters.crt) {
-      (filters.crt as CRTFilter).noise = 0.5 * Math.sin(elapsedTime * 0.5);
-    }
-    // if (filters?.blur) {
-    //   const easeFactor = firstRun ? 1.0 : 55.0;
-    //   const target = mutedMode ? 4.0 : 0.00001;
-    //   filters.blur.strength += (target - filters.blur.strength) / easeFactor;
-    // }
-    // if (filters?.displacement) {
-    //   const easeFactor = firstRun ? 1.0 : 55.0;
-    //   const target = mutedMode ? 1.0 : 5.0;
-    //   const result =
-    //     filters.displacement.scale.x +
-    //     (target - filters.displacement.scale.x) / easeFactor;
-    //   filters.displacement.scale.set(result);
-    // }
-
-    // if (emitter) {
-    //   emitter.update(Ticker.shared.deltaMS / 1000.0);
-    // }
-  }
-
   let startCalled = false;
+  // Shouldn't have to check if items exist
   function onStageResize(width: number, height: number) {
     dims.width = width;
     dims.height = height;
@@ -208,6 +203,15 @@ export function createAnim(): Anim {
       startCalled = true;
       start();
     }
+
+    containers.artboard.scale.set(
+      containScale(
+        artboardDims.width,
+        artboardDims.height,
+        dims.width,
+        dims.height,
+      ),
+    );
 
     //sprites.bg.position.set(width * 0.5, height * 0.5);
     sprites.bg.position.set(dims.width * 0.5, dims.height * 0.5);
@@ -226,13 +230,89 @@ export function createAnim(): Anim {
     sprites.regV.x = dims.width - sprites.regV.width;
     sprites.regV.y = dims.height - sprites.regV.height;
 
-    containers.squareHolder.x = dims.width * 0.5;
-    containers.squareHolder.y = dims.height * 0.5;
+    containers.artboard.x = dims.width * 0.5;
+    containers.artboard.y = dims.height * 0.5;
+
+    if (emitter) {
+      emitter.updateSpawnPos(dims.width * 0.5, dims.height * 0.5);
+      // Update spawn rect
+      for (const b of emitter.initBehaviors) {
+        if (b.shape) {
+          b.shape.x = -dims.width * 0.5;
+          b.shape.y = -dims.height * 0.5;
+          b.shape.w = dims.width;
+          b.shape.h = dims.height * 0.5;
+        }
+      }
+    }
+  }
+
+  let elapsedTime = 0.0;
+  // Shouldn't have to check if items exist
+  let prevIsOverlap = true;
+  let isBoxTop = true;
+  const minDist = Math.sqrt(Math.pow(boxSize * 0.5, 2) * 2.0) + boxSize * 0.5;
+
+  function onTick() {
+    elapsedTime += ticker.elapsedMS * 0.001;
+
+    const speedFactor = 1.3;
+    sprites.diamond.position.set(
+      boxSize * 1.3 * Math.sin(elapsedTime * 2.5 * speedFactor),
+      boxSize * 1.3 * Math.sin(elapsedTime * 5.0 * speedFactor),
+    );
+
+    // delta = null, firstRun = false
+    // const dt = delta?.deltaTime ?? 1.0;
+    // if (sprites?.displacement) {
+    //   const speedFactor = 0.6;
+    //   sprites.displacement.x += 8 * dt * speedFactor;
+    //   sprites.displacement.y += 3 * dt * speedFactor;
+    //   //sprites.displacement.rotation = 11; //+= 0.1 * delta.deltaTime * speedFactor;
+    // }
+
+    if (filters.crt) {
+      (filters.crt as CRTFilter).noise = 0.5 * Math.sin(elapsedTime * 0.5);
+    }
+
+    const dx = sprites.diamond.position.x - sprites.box.position.x;
+    const dy = sprites.diamond.position.y - sprites.box.position.y;
+
+    const isOverlap = Math.abs(dx) < minDist && Math.abs(dy) < minDist;
+
+    if (!isOverlap && prevIsOverlap) {
+      isBoxTop = !isBoxTop;
+      if (isBoxTop) {
+        bringToFront(sprites.box);
+      } else {
+        bringToFront(sprites.diamond);
+      }
+    }
+
+    // if (filters?.displacement) {
+    //   const easeFactor = firstRun ? 1.0 : 55.0;
+    //   const target = mutedMode ? 1.0 : 5.0;
+    //   const result =
+    //     filters.displacement.scale.x +
+    //     (target - filters.displacement.scale.x) / easeFactor;
+    //   filters.displacement.scale.set(result);
+    // }
+
+    if (emitter) {
+      emitter.update(ticker.deltaMS / 1000.0);
+    }
+
+    prevIsOverlap = isOverlap;
   }
 
   function destroy() {
     ticker.remove(onTick);
     resizeObserver?.disconnect(); // Unobserves all observed Element or SVGElement targets.
+
+    if (emitter) {
+      emitter.destroy();
+      emitter = null;
+    }
 
     for (const spriteName in sprites) {
       sprites[spriteName].filters = [];
