@@ -17,26 +17,26 @@ function App() {
     <div className="flex flex-1">
       {mode === 'fullscreen' && (
         <AnimComp
-          picPath="/img/pic-a.jpg"
+          picPath="img/pic-a.jpg"
           className={'absolute h-full w-full '}
         />
       )}
       {mode === 'multi' && (
         <div className="flex flex-row p-10 gap-10 items-center justify-center flex-wrap flex-1">
           <AnimComp
-            picPath="/img/pic-b.jpg"
+            picPath="img/pic-b.jpg"
             className={'w-[320px] h-[240px] rounded-sm'}
           />
           <AnimComp
-            picPath="/img/pic-a.jpg"
+            picPath="img/pic-a.jpg"
             className={'w-[320px] h-[240px] rounded-sm'}
           />
           <AnimComp
-            picPath="/img/pic-b.jpg"
+            picPath="img/pic-b.jpg"
             className={'w-[320px] h-[240px] rounded-sm'}
           />
           <AnimComp
-            picPath="/img/pic-a.jpg"
+            picPath="img/pic-a.jpg"
             className={'w-[320px] h-[240px] rounded-sm'}
           />
         </div>
@@ -44,7 +44,7 @@ function App() {
       {mode === 'particles' && (
         <div className="absolute w-full h-full p-10 self-stretch">
           <AnimComp
-            picPath="/img/pic-b.jpg"
+            picPath="img/pic-b.jpg"
             enableParticles={true}
             className={'w-full h-full rounded-sm'}
           />

@@ -88,7 +88,7 @@ export function createAnim({
 
     // Particles
     if (enableParticles) {
-      await Assets.load('/img/dot.png');
+      await Assets.load('img/dot.png');
     }
 
     parent.appendChild(app.canvas); // Attach (after loading)
@@ -121,7 +121,7 @@ export function createAnim({
       app.stage.addChild(containers.particles);
 
       emitter = createEmitter(containers.particles, emitterConfig, [
-        '/img/dot.png',
+        'img/dot.png',
       ]);
 
       // emitter.updateSpawnPos(x, y); // Changes the spawn position of the emitter.
@@ -162,7 +162,7 @@ export function createAnim({
     sprites.box.anchor.set(0.5);
     containers.artboard.addChild(sprites.box);
 
-    // sprites.displacement = Sprite.from('/img/pic-a.jpg');
+    // sprites.displacement = Sprite.from('img/pic-a.jpg');
     // sprites.displacement.texture.source.addressMode = 'repeat'; // WRAP_MODES.REPEAT; // nope
     // app.stage.addChild(sprites.displacement);
 
