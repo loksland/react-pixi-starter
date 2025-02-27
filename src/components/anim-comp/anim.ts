@@ -16,7 +16,7 @@ import { debounce } from '@/utils/debounce';
 import { bringToFront } from '@/utils/pixi';
 import emitterConfig from '@/components/anim-comp/assets/particle-emitter.json';
 
-import { createEmitter, Emitter } from '@/lib/particle-emitter.js';
+import { createEmitter, Emitter } from '@/vendors/particle-emitter.js';
 
 // import { KawaseBlurFilter } from 'pixi-filters';
 
